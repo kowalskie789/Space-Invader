@@ -1,0 +1,97 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerController : MonoBehaviour
+{
+    Rigidbody body;
+    Animator animator;
+
+    float horizontal;
+    float vertical;
+    //private bool IsGrounded = true;
+
+    public float runSpeed = 10.0f;
+    public float turnSpeed = 10f;
+    public float updownspeed = 10f;
+    public float maxHeight = 100f;
+    public float Health;        //health stuff
+    public Image healthbar;
+    private float Currenthealth;//health stuff
+
+    void Start()
+    {
+        body = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        Currenthealth = Health;
+
+    }
+
+    void Update()
+    {
+        horizontal = Input.GetAxisRaw("Horizontal");
+        vertical = Input.GetAxisRaw("Vertical");
+
+        if (Currenthealth < 100)
+        {
+            Currenthealth += 0.01f; // HEALTH REGENERATION
+        }
+        healthbar.fillAmount = Currenthealth / Health;
+
+    }
+
+    private void FixedUpdate()
+    {
+        body.AddForce(this.transform.forward * runSpeed * vertical);
+
+        body.transform.Rotate(0, horizontal * turnSpeed, 0);
+
+        if (body.velocity.magnitude != 0)
+        {
+            animator.SetBool("IsMoving", true);
+        }
+        else
+        {
+            animator.SetBool("IsMoving", false);
+        }
+
+
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            animator.SetBool("Fly", true);
+            body.useGravity = false;
+            if (Physics.Raycast(transform.position, Vector3.down, maxHeight))
+            {
+                body.AddForce(Vector3.up * updownspeed);
+            }
+        }
+        if (Input.GetKey(KeyCode.E))
+        {
+            body.AddForce(Vector3.down * updownspeed);
+            if (transform.position.y < 5)
+            //if(Physics.Raycast(transform.position,Vector3.down, 2f))
+            {
+
+                animator.SetBool("Fly", false);
+            }
+
+        }
+
+    }
+
+    private void OnTriggerEnter(Collider other) // health stuff do miany pewnie później 
+    {
+        if (other.tag == "Enemy")
+        {
+            Currenthealth -= 10; // tu trzeba podziałać z eventami może albo coś
+
+            Debug.Log(Currenthealth);
+            if (Currenthealth <= 0)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+}
